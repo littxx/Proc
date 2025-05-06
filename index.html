@@ -2,96 +2,191 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Minhas Metas Diárias</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minhas Metas</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: #111;
       color: #fff;
-      text-align: center;
-      padding: 40px;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     h1 {
       color: #00ffcc;
+      margin-bottom: 10px;
     }
-    input, button {
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+    }
+
+    input[type="text"] {
+      width: 70%;
       padding: 10px;
       font-size: 16px;
       border: none;
-      margin: 10px;
+      border-radius: 5px 0 0 5px;
+      outline: none;
     }
+
+    button.add {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #00ffcc;
+      color: #000;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+
     ul {
       list-style: none;
       padding: 0;
+      margin-top: 20px;
     }
+
     li {
       background: #222;
-      margin: 10px auto;
+      margin-bottom: 10px;
       padding: 10px;
-      width: 300px;
       border-radius: 5px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
-    input[type="checkbox"] {
-      transform: scale(1.5);
+
+    .tarefa-texto {
+      flex: 1;
+      margin-left: 10px;
+    }
+
+    .tarefa-btn {
+      background: none;
+      border: none;
+      color: red;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .progresso {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+        border-radius: 5px;
+      }
+
+      button.add {
+        width: 100%;
+        border-radius: 5px;
+      }
+
+      .input-group {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>✅ Minhas Metas de Hoje</h1>
-
-  <input id="nova-tarefa" placeholder="Digite uma tarefa" />
-  <button onclick="adicionarTarefa()">Adicionar</button>
-
-  <ul id="lista-tarefas"></ul>
+  <h1>✅ Minhas Metas</h1>
+  <div class="container">
+    <div class="input-group" style="display: flex;">
+      <input id="nova-tarefa" type="text" placeholder="Digite sua meta...">
+      <button class="add" onclick="adicionarTarefa()">Adicionar</button>
+    </div>
+    <ul id="lista-tarefas"></ul>
+    <div class="progresso" id="progresso-texto">0 de 0 concluídas</div>
+  </div>
 
   <script>
-    let tarefas = [];
+    let tarefas = JSON.parse(localStorage.getItem('tarefas')) || [];
+
+    function salvarTarefas() {
+      localStorage.setItem('tarefas', JSON.stringify(tarefas));
+    }
+
     function adicionarTarefa() {
       const input = document.getElementById('nova-tarefa');
       const texto = input.value.trim();
       if (texto === '') return;
 
-      const tarefa = { texto, concluida: false };
-      tarefas.push(tarefa);
+      tarefas.push({ texto, concluida: false });
       input.value = '';
+      salvarTarefas();
       renderizarTarefas();
     }
 
     function alternarConclusao(index) {
       tarefas[index].concluida = !tarefas[index].concluida;
+      salvarTarefas();
+      renderizarTarefas();
+    }
+
+    function removerTarefa(index) {
+      tarefas.splice(index, 1);
+      salvarTarefas();
       renderizarTarefas();
     }
 
     function renderizarTarefas() {
       const ul = document.getElementById('lista-tarefas');
+      const progressoTexto = document.getElementById('progresso-texto');
       ul.innerHTML = '';
+
       tarefas.forEach((t, i) => {
         const li = document.createElement('li');
-        const check = document.createElement('input');
-        check.type = 'checkbox';
-        check.checked = t.concluida;
-        check.onclick = () => alternarConclusao(i);
-        li.textContent = t.texto;
-        li.prepend(check);
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = t.concluida;
+        checkbox.onclick = () => alternarConclusao(i);
+
+        const textoSpan = document.createElement('span');
+        textoSpan.textContent = t.texto;
+        textoSpan.className = 'tarefa-texto';
+
+        const delButton = document.createElement('button');
+        delButton.textContent = '🗑️';
+        delButton.className = 'tarefa-btn';
+        delButton.onclick = () => removerTarefa(i);
+
+        li.appendChild(checkbox);
+        li.appendChild(textoSpan);
+        li.appendChild(delButton);
         ul.appendChild(li);
       });
 
-      // Verifica se todas estão concluídas
       const total = tarefas.length;
       const feitas = tarefas.filter(t => t.concluida).length;
+      progressoTexto.textContent = `${feitas} de ${total} concluídas`;
+
       if (total > 0 && feitas === total) {
         confetti({
           particleCount: 150,
-          spread: 100,
+          spread: 90,
           origin: { y: 0.6 }
         });
+
+        progressoTexto.textContent += " 🎉 Parabéns! Meta batida!";
       }
     }
+
+    renderizarTarefas();
   </script>
 
 </body>
