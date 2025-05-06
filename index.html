@@ -6,10 +6,7 @@
   <title>Minhas Metas</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #111;
@@ -20,17 +17,14 @@
       flex-direction: column;
       align-items: center;
     }
-
     h1 {
       color: #00ffcc;
       margin-bottom: 10px;
     }
-
     .container {
       max-width: 500px;
       width: 100%;
     }
-
     input[type="text"] {
       width: 70%;
       padding: 10px;
@@ -39,7 +33,6 @@
       border-radius: 5px 0 0 5px;
       outline: none;
     }
-
     button.add {
       padding: 10px;
       font-size: 16px;
@@ -49,13 +42,11 @@
       border-radius: 0 5px 5px 0;
       cursor: pointer;
     }
-
     ul {
       list-style: none;
       padding: 0;
       margin-top: 20px;
     }
-
     li {
       background: #222;
       margin-bottom: 10px;
@@ -65,12 +56,10 @@
       align-items: center;
       justify-content: space-between;
     }
-
     .tarefa-texto {
       flex: 1;
       margin-left: 10px;
     }
-
     .tarefa-btn {
       background: none;
       border: none;
@@ -78,7 +67,6 @@
       font-size: 18px;
       cursor: pointer;
     }
-
     .progresso {
       margin-top: 20px;
       font-weight: bold;
@@ -90,12 +78,10 @@
         margin-bottom: 10px;
         border-radius: 5px;
       }
-
       button.add {
         width: 100%;
         border-radius: 5px;
       }
-
       .input-group {
         flex-direction: column;
       }
@@ -104,7 +90,7 @@
 </head>
 <body>
 
-  <h1>✅ Minhas Metas</h1>
+  <h1 id="titulo">✅ Minhas Metas</h1>
   <div class="container">
     <div class="input-group" style="display: flex;">
       <input id="nova-tarefa" type="text" placeholder="Digite sua meta...">
@@ -116,6 +102,13 @@
 
   <script>
     let tarefas = JSON.parse(localStorage.getItem('tarefas')) || [];
+    let nomeUsuario = localStorage.getItem('nomeUsuario');
+
+    function solicitarNome() {
+      nomeUsuario = prompt("Qual seu nome?");
+      if (!nomeUsuario) nomeUsuario = "Campeão";
+      localStorage.setItem("nomeUsuario", nomeUsuario);
+    }
 
     function salvarTarefas() {
       localStorage.setItem('tarefas', JSON.stringify(tarefas));
@@ -142,6 +135,15 @@
       tarefas.splice(index, 1);
       salvarTarefas();
       renderizarTarefas();
+    }
+
+    function mostrarNotificacao(titulo, corpo) {
+      if (Notification.permission === 'granted') {
+        new Notification(titulo, {
+          body: corpo,
+          icon: 'https://cdn-icons-png.flaticon.com/512/190/190411.png'
+        });
+      }
     }
 
     function renderizarTarefas() {
@@ -176,17 +178,23 @@
       progressoTexto.textContent = `${feitas} de ${total} concluídas`;
 
       if (total > 0 && feitas === total) {
-        confetti({
-          particleCount: 150,
-          spread: 90,
-          origin: { y: 0.6 }
-        });
+        confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
 
-        progressoTexto.textContent += " 🎉 Parabéns! Meta batida!";
+        const msg = `🎉 Parabéns, ${nomeUsuario}! Você concluiu todas as metas!`;
+        progressoTexto.textContent = msg;
+        mostrarNotificacao("Meta batida!", msg);
       }
     }
 
+    // Início
+    if (!nomeUsuario) solicitarNome();
+    document.getElementById('titulo').textContent = `✅ Metas de ${nomeUsuario}`;
     renderizarTarefas();
+
+    // Pede permissão para notificações
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
   </script>
 
 </body>
