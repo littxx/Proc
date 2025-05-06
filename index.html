@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Minhas Metas Diárias</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #00ffcc;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      margin: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #222;
+      margin: 10px auto;
+      padding: 10px;
+      width: 300px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.5);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✅ Minhas Metas de Hoje</h1>
+
+  <input id="nova-tarefa" placeholder="Digite uma tarefa" />
+  <button onclick="adicionarTarefa()">Adicionar</button>
+
+  <ul id="lista-tarefas"></ul>
+
+  <script>
+    let tarefas = [];
+    function adicionarTarefa() {
+      const input = document.getElementById('nova-tarefa');
+      const texto = input.value.trim();
+      if (texto === '') return;
+
+      const tarefa = { texto, concluida: false };
+      tarefas.push(tarefa);
+      input.value = '';
+      renderizarTarefas();
+    }
+
+    function alternarConclusao(index) {
+      tarefas[index].concluida = !tarefas[index].concluida;
+      renderizarTarefas();
+    }
+
+    function renderizarTarefas() {
+      const ul = document.getElementById('lista-tarefas');
+      ul.innerHTML = '';
+      tarefas.forEach((t, i) => {
+        const li = document.createElement('li');
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.checked = t.concluida;
+        check.onclick = () => alternarConclusao(i);
+        li.textContent = t.texto;
+        li.prepend(check);
+        ul.appendChild(li);
+      });
+
+      // Verifica se todas estão concluídas
+      const total = tarefas.length;
+      const feitas = tarefas.filter(t => t.concluida).length;
+      if (total > 0 && feitas === total) {
+        confetti({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>
